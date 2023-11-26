@@ -1,30 +1,38 @@
 package Huffman;
 
-import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Queue;
-
+import java.util.*;
 import static java.util.Objects.requireNonNull;
 
 public class Huffman {
     private Node root;
     private final String text;
-    private Map<Character, Integer> charFrequencies;
+    private final Map<Character, Integer> charFrequencies;
     private final Map<Character, String> huffmanCode;
+    private int treeIndex = 0;
 
     public Huffman(String text) {
         this.text = text;
-        calculateCharFrequency();
+        charFrequencies = new HashMap<>();
         huffmanCode = new HashMap<>();
+        calculateCharFrequency();
     }
 
     private void calculateCharFrequency() {
-        charFrequencies = new HashMap<>();
         for (char character : text.toCharArray()) {
             charFrequencies.put(character, charFrequencies.getOrDefault(character, 0) + 1);
         }
+    }
+
+    private String serializeTree(Node node) {
+        StringBuilder serializedTree = new StringBuilder();
+        if (node instanceof Leaf leaf) {
+            serializedTree.append("L").append(leaf.getCharacter());
+        } else {
+            serializedTree.append("I");
+            serializedTree.append(serializeTree(node.getLeftNode()));
+            serializedTree.append(serializeTree(node.getRightNode()));
+        }
+        return serializedTree.toString();
     }
 
     public String encode() {
@@ -48,19 +56,21 @@ public class Huffman {
         return serializedTree + '|' + getEncodedText();
     }
 
-    private String serializeTree(Node node) {
-        StringBuilder serializedTree = new StringBuilder();
-        if (node instanceof Leaf leaf) {
-            serializedTree.append("L").append(leaf.getCharacter());
-        } else {
-            serializedTree.append("I");
-            serializedTree.append(serializeTree(node.getLeftNode()));
-            serializedTree.append(serializeTree(node.getRightNode()));
-        }
-        return serializedTree.toString();
+    private String getEncodedText() {
+        StringBuilder encodedText = new StringBuilder();
+        for (char character : text.toCharArray())
+            encodedText.append(huffmanCode.get(character));
+        return encodedText.toString();
     }
 
-    private int treeIndex = 0;
+    private void generateHuffman(Node node, String code) {
+        if (node instanceof Leaf leaf) {
+            huffmanCode.put(leaf.getCharacter(), code);
+            return;
+        }
+        generateHuffman(node.getLeftNode(), code.concat("0"));
+        generateHuffman(node.getRightNode(), code.concat("1"));
+    }
 
     private Node deserializeTree(String serializedTree) {
         char nodeType = serializedTree.charAt(treeIndex++);
@@ -74,23 +84,6 @@ public class Huffman {
         } else {
             throw new IllegalArgumentException("Invalid serialized tree format");
         }
-    }
-
-    private String getEncodedText() {
-        StringBuilder encodedText = new StringBuilder();
-        for (char character : text.toCharArray()) {
-            encodedText.append(huffmanCode.get(character));
-        }
-        return encodedText.toString();
-    }
-
-    private void generateHuffman(Node node, String code) {
-        if (node instanceof Leaf leaf) {
-            huffmanCode.put(leaf.getCharacter(), code);
-            return;
-        }
-        generateHuffman(node.getLeftNode(), code.concat("0"));
-        generateHuffman(node.getRightNode(), code.concat("1"));
     }
 
     public String decode(String encodedTextWithTree) {
@@ -112,11 +105,7 @@ public class Huffman {
         StringBuilder decodedText = new StringBuilder();
         Node node = root;
         for (char bit : encodedText.toCharArray()) {
-            if (bit == '0') {
-                node = node.getLeftNode();
-            } else {
-                node = node.getRightNode();
-            }
+            node = (bit == '0') ? node.getLeftNode() : node.getRightNode();
 
             if (node instanceof Leaf leaf) {
                 decodedText.append(leaf.getCharacter());
@@ -125,6 +114,4 @@ public class Huffman {
         }
         return decodedText.toString();
     }
-
-
 }

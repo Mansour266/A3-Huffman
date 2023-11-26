@@ -1,9 +1,6 @@
 package Huffman;
 
-import static java.util.Objects.requireNonNull;
-
 public class Node implements Comparable<Node> {
-
     private final int frequency;
     private Node leftNode;
     private Node rightNode;
@@ -37,7 +34,6 @@ public class Node implements Comparable<Node> {
 }
 //==================================================================================================
 class Leaf extends Node {
-
     private final char character;
 
     public Leaf(char character, int frequency) {
