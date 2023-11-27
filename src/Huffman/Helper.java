@@ -2,53 +2,58 @@ package Huffman;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 public class Helper {
 
     private String inputFileName;
 
     private String outputFileName;
 
+    private static String data;
+
     public static File getFile(String inputFileName) {
         File file = new File(inputFileName);
         return (file.exists() && file.isFile()) ? file : null;
     }
 
-    public static boolean isBinary(File file) {
-        try {
-            InputStream inputStream = new FileInputStream(file);
-            int size = Math.min(inputStream.available(), 1024); // Read up to 1024 bytes for analysis
-            byte[] buffer = new byte[size];
-            inputStream.read(buffer);
-            inputStream.close();
-
-            for (byte b : buffer) {
-                if (b == 0) {
-                    return true; // Null byte detected, likely a binary file
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
     public static String GetFileData(String fileName) {
         File file = getFile(fileName);
-
+        String dataString = "";
         if (file == null) {
             System.out.println("File does not exist or is not a regular file.");
             return null;
         }
-
-        if (!isBinary(file)) {
-            // If it's not a binary file, read the string and return
-            return readTextFile(file);
-        } else {
-            // If it's a binary file, read the bits and convert to string
-            return readBitsFromFile(file);
+        StringBuilder data = new StringBuilder();
+        try {
+            Scanner scanner = new Scanner(file);
+            while (scanner.hasNextLine()) {
+                data.append(scanner.nextLine());
+            }
+            dataString = data.toString();
+            scanner.close();
+            if (isBinaryString(dataString))
+                dataString = convertFromBinary(dataString);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+            setData(dataString);
+            return dataString;
+
     }
 
-    public static void WriteToFile(String fileName, String data) {
+    public static String convertFromBinary(String binary) {
+        StringBuilder str = new StringBuilder();
+        for (int i = 0; i < binary.length(); i += 8) {
+            String subBinary = binary.substring(i, i + 8);
+            int ascii = Integer.parseInt(subBinary, 2);
+            char character = (char) ascii;
+            str.append(character);
+        }
+        return str.toString();
+    }
+
+    public static void WriteToFile(String fileName, String data, boolean isBinary) {
         try {
             if (fileName == null) {
                 System.out.println("File name is null.");
@@ -56,54 +61,9 @@ public class Helper {
             }
 
             File outputFile = new File(fileName);
-
-            // Use FileOutputStream with append mode set to false (overwrite)
-            try (OutputStream outputStream = new FileOutputStream(outputFile, false)) {
-                if (isBinary(outputFile)) {
-                    writeBitsToFile(outputFile, data);
-                } else {
-                    writeTextFile(outputFile, data);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static String readTextFile(File file) {
-        StringBuilder data = new StringBuilder();
-        try {
-            Scanner scanner = new Scanner(file);
-            while (scanner.hasNextLine()) {
-                data.append(scanner.nextLine());
-            }
-            scanner.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return data.toString();
-    }
-
-    private static String readBitsFromFile(File file) {
-        StringBuilder bits = new StringBuilder();
-        try {
-            InputStream inputStream = new FileInputStream(file);
-            int data;
-            while ((data = inputStream.read()) != -1) {
-                // Convert the byte to a binary string representation
-                String binaryString = String.format("%8s", Integer.toBinaryString(data & 0xFF)).replace(' ', '0');
-                bits.append(binaryString);
-            }
-            inputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return bits.toString();
-    }
-
-    private static void writeTextFile(File file, String data) {
-        try {
-            PrintWriter writer = new PrintWriter(file);
+            PrintWriter writer = new PrintWriter(outputFile);
+            if (isBinary)
+                data = convertToBinary(data);
             writer.print(data);
             writer.close();
         } catch (IOException e) {
@@ -111,22 +71,25 @@ public class Helper {
         }
     }
 
-    private static void writeBitsToFile(File file, String data) {
-        try {
-            OutputStream outputStream = new FileOutputStream(file);
-
-            // Convert each 8 data to a byte and write to the output stream
-            for (int i = 0; i < data.length(); i += 8) {
-                String byteString = data.substring(i, Math.min(i + 8, data.length()));
-                int byteValue = Integer.parseInt(byteString, 2);
-                outputStream.write(byteValue);
+    public static String convertToBinary(String str) {
+        StringBuilder binary = new StringBuilder();
+        for (char c : str.toCharArray()) {
+            int ascii = (int) c;
+            String binaryRepresentation = Integer.toBinaryString(ascii);
+            while (binaryRepresentation.length() < 8) {
+                binaryRepresentation = "0" + binaryRepresentation;
             }
-
-            outputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+            binary.append(binaryRepresentation);
         }
+        return binary.toString();
     }
+    public static boolean isBinaryString(String str) {
+        String regex = "^[01]+$";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(str);
+        return matcher.matches();
+    }
+
     public void setInputFileName(String inputFileName) {
         this.inputFileName = inputFileName;
     }
@@ -141,6 +104,14 @@ public class Helper {
 
     public String getOutputFileName() {
         return outputFileName;
+    }
+
+    public static String getData() {
+        return data;
+    }
+
+    public static void setData(String data) {
+        Helper.data = data;
     }
 
 }

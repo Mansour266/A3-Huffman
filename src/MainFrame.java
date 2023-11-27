@@ -4,7 +4,7 @@ import javax.swing.*;
 import Huffman.*;
 public class MainFrame {
     private JFrame frame;
-    private Huffman huffman;
+    private static Huffman huffman;
     private final Helper helper;
 
     public MainFrame() {
@@ -78,13 +78,13 @@ public class MainFrame {
     private void initializeActionButtonListeners(JButton compressButton, JButton decompressButton) {
         compressButton.addActionListener(e -> {
             String encodedText = huffman.encode();
-            Helper.WriteToFile(helper.getOutputFileName(), encodedText);
+            Helper.WriteToFile(helper.getOutputFileName(), encodedText, true);
             JOptionPane.showMessageDialog(frame, "File compressed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
         });
         decompressButton.addActionListener(e -> {
-            String encodedText = Helper.GetFileData(helper.getInputFileName());
+            String encodedText = Helper.getData();
             String decodedText = huffman.decode(encodedText);
-            Helper.WriteToFile(helper.getOutputFileName(), decodedText);
+            Helper.WriteToFile(helper.getOutputFileName(), decodedText, false);
             JOptionPane.showMessageDialog(frame, "File decompressed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
         });
     }
