@@ -82,7 +82,7 @@ public class MainFrame {
             JOptionPane.showMessageDialog(frame, "File compressed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
         });
         decompressButton.addActionListener(e -> {
-            String encodedText = Helper.GetFileData(Helper.getFile(helper.getInputFileName()));
+            String encodedText = Helper.GetFileData(helper.getInputFileName());
             String decodedText = huffman.decode(encodedText);
             Helper.WriteToFile(helper.getOutputFileName(), decodedText);
             JOptionPane.showMessageDialog(frame, "File decompressed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -121,7 +121,7 @@ public class MainFrame {
                     JOptionPane.showMessageDialog(frame, "File not found!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
                 helper.setInputFileName(fileName);
-                String data = Helper.GetFileData(Helper.getFile(fileName));
+                String data = Helper.GetFileData(fileName);
                 huffman = new Huffman(data);
             } else
                 helper.setOutputFileName(fileName);
@@ -137,7 +137,7 @@ public class MainFrame {
         String operationType  = (operation) ? "input" : "output";
         JLabel label2 = new JLabel("Enter name of " + operationType + " file with extension: " + ((operation) ? "   " : ""));
 
-        label2.setFont(new Font("Sans-serif", Font.BOLD, 16));
+        label2.setFont(new Font("Sans-serif", Font.PLAIN, 14));
         JTextField TextField = new JTextField(20);
         TextField.setMaximumSize(new Dimension(200, 25));
 
